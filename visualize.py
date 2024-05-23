@@ -1,7 +1,7 @@
 """介绍：
 使用pygame进行可视化速度和移动方向
-管道存放在./QtOvercooked/pipe/visualize
-log文件存放在./QtOvercooked/pipe/log.txt
+该项目需要创建临时文件，并需要提供地图文件，请自行修改以下代码中的
+`tmp_root` 和 `map_root`
 
 # 输入内容：
 p1x,p1y 角色1的位置
@@ -15,13 +15,18 @@ a2x,a2y 角色2的移动方向 只能是-1,0,1
 一行，每个数据之间用空格隔开
 
 # 使用方法：
-python3 visualize.py进行管道模式
-python3 visualize.py 1进行log模式
-按左右键可以快进快退，按上下键可以调整帧率
+
+python3 visualize.py <LVL> <MODE>
+- <LVL> 是关卡名称 (例如 "1-1")
+- <MODE> 是 0 或 1. 
+    0 表示 log 模式, 1 表示管道模式
+
+按左右键可以快进快退，按上下键可以调整帧率，空格可以暂停，并可以拖动进度条
 
 # 要求：
-管道模式下,先运行该文件,再运行QtOvercooked,在QtOvercooked中每一帧按照上述格式写入管道
-log模式下,先运行QtOvercooked,在QtOvercooked中每一帧按照上述格式写入一行到log.txt
+管道模式下,先运行该文件,再运行 QtOvercooked, 在QtOvercooked中每一帧按照上述格式写入管道
+log 模式下,先运行 QtOvercooked, 在 QtOvercooked 中每一帧按照上述格式写入一行到log.txt
+见提供的 plugin.cpp 文件
 
 """
 
@@ -30,18 +35,30 @@ import sys
 import os
 import time
 
-map_ = """*****c****
-*...*....*
-*...*..***
-*........p
-A..*.....$
-B..*.....t
-C..**....*
-s.....*..s
-*.....*._*
-*kr*******""".split(
-    "\n"
-)
+# modify these as needed.
+tmp_root = "/tmp"
+map_root = "./maps"
+
+
+# do not modify the following params.
+if not os.path.exists(f"{tmp_root}/visualize"):
+    os.makedirs(f"{tmp_root}/visualize")
+
+pipe_path = f"{tmp_root}/visualize/pipe"
+log_path = f"{tmp_root}/visualize/log.txt"
+
+map_ = [".........." for _ in range(10)]
+
+
+def read_map(lvl):
+    x, _ = lvl.split("-")
+    with open(f"{map_root}/level{x}/level{lvl}.txt") as file:
+        # find the 2-11 lines of the file and store them in map_
+        file.readline()
+        global map_
+        map_ = ["" for _ in range(10)]
+        for i in range(10):
+            map_[i] = file.readline().strip()
 
 
 def draw(speed, frame, data: list, maxframe=14400):
@@ -154,13 +171,15 @@ def draw(speed, frame, data: list, maxframe=14400):
     # 显示数据
     font = pygame.font.Font(None, 36)
     text = font.render(
-        f"({str(p1x)[:4]},{str(p1y)[:4]}) ({str(v1x)[:4]},{str(v1y)[:4]}) ({str(a1x)[:4]},{str(a1y)[:4]}) red",
+        f"({str(p1x)[:4]},{str(p1y)[:4]}) ({str(v1x)[:4]},\
+        {str(v1y)[:4]}) ({str(a1x)[:4]},{str(a1y)[:4]}) red",
         1,
         (10, 10, 10),
     )
     screen.blit(text, (10, height + margindown + 10))
     text = font.render(
-        f"({str(p2x)[:4]},{str(p2y)[:4]}) ({str(v2x)[:4]},{str(v2y)[:4]}) ({str(a2x)[:4]},{str(a2y)[:4]}) green",
+        f"({str(p2x)[:4]},{str(p2y)[:4]}) ({str(v2x)[:4]},\
+        {str(v2y)[:4]}) ({str(a2x)[:4]},{str(a2y)[:4]}) green",
         1,
         (10, 10, 10),
     )
@@ -185,11 +204,15 @@ def init_draw(size):
 
 
 if __name__ == "__main__":
-    pipe_mode = True
-    if len(sys.argv) == 2:
-        pipe_mode = False
+    if len(sys.argv) != 3:
+        print("""Usage: python3 visualize.py <LVL> <MODE>
+\t- <LVL> is the level number. (e.g. \"1-1\")
+\t- <MODE> is either 0 or 1; 0 for log mode, 1 for pipe mode.""")
+        sys.exit(1)
+    lvl = sys.argv[1]
+    read_map(lvl)
+    pipe_mode = sys.argv[2] == "1"
     # 管道路径
-    pipe_path = "./QtOvercooked/pipe/visualize"
     if pipe_mode:
         # 先删除管道
         if os.path.exists(pipe_path):
@@ -197,7 +220,7 @@ if __name__ == "__main__":
         # 创建管道
         create_pipe(pipe_path)
     else:
-        with open("./QtOvercooked/pipe/log.txt", "r") as f:
+        with open(log_path, "r") as f:
             whole_data = f.readlines()
 
     # 设置窗口大小
@@ -247,6 +270,7 @@ if __name__ == "__main__":
         if pipe_mode:
             # 读取管道
             pipe = open(pipe_path, "r")
+            data = pipe.readline()
             pipe.close()
             print(data)
             data = data.strip().split()
@@ -258,7 +282,8 @@ if __name__ == "__main__":
             if pygame.mouse.get_pressed()[0]:
                 pos = pygame.mouse.get_pos()
                 if pos[1] < margin / 2:
-                    frame = int((pos[0] - margin / 2) / width * len(whole_data))
+                    frame = int((pos[0] - margin / 2) /
+                                width * len(whole_data))
                     if frame >= len(whole_data):
                         frame = len(whole_data) - 1
             data = whole_data[frame].strip().split()
