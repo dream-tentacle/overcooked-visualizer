@@ -31,7 +31,7 @@ import os
 import time
 
 
-def draw(speed, frame, data: list):
+def draw(speed, frame, data: list, maxframe=14400):
     [p1x, p1y, v1x, v1y, a1x, a1y, p2x, p2y, v2x, v2y, a2x, a2y] = [
         float(i) for i in data
     ]
@@ -52,8 +52,10 @@ def draw(speed, frame, data: list):
     dark_blue = (0, 0, 128)
     dark_green = (0, 128, 0)
     dark_red = (128, 0, 0)
-    shadow1 = (255, 200, 200)  # light red
-    shadow2 = (200, 255, 200)  # light green
+    light_red = (255, 200, 200)
+    light_green = (200, 255, 200)
+    gray = (128, 128, 128)
+    dark_gray = (64, 64, 64)
     # 绘制格子
     for i in range(1, maxwidth):
         pygame.draw.line(
@@ -72,20 +74,20 @@ def draw(speed, frame, data: list):
             1,
         )
     # 绘制角色位置
-    pygame.draw.circle(screen, shadow1, position1, 35)
-    pygame.draw.circle(screen, shadow2, position2, 35)
+    pygame.draw.circle(screen, light_red, position1, 0.35 * block_size)
+    pygame.draw.circle(screen, light_green, position2, 0.35 * block_size)
     # 在角色周围绘制移动
     pygame.draw.circle(
         screen,
         dark_red,
         (move1[0] + position1[0], move1[1] + position1[1]),
-        15,
+        10,
     )
     pygame.draw.circle(
         screen,
         dark_green,
         (move2[0] + position2[0], move2[1] + position2[1]),
-        15,
+        10,
     )
     # 在角色周围绘制速度
     pygame.draw.line(
@@ -101,6 +103,19 @@ def draw(speed, frame, data: list):
         position2,
         (speed2[0] + position2[0], speed2[1] + position2[1]),
         10,
+    )
+    # 绘制frame和maxframe的比例
+    pygame.draw.rect(
+        screen,
+        gray,
+        (margin / 2, 10, width, 20),
+        0,
+    )
+    pygame.draw.rect(
+        screen,
+        dark_gray,
+        (margin / 2, 10, width * frame / maxframe, 20),
+        0,
     )
     # 在左上角显示帧数和帧率
     font = pygame.font.Font(None, 36)
@@ -168,6 +183,7 @@ if __name__ == "__main__":
     maxspeed = 5
     maxmove = 1
     size = width + margin, height + margin + margindown
+    block_size = 1.0 * width / maxwidth
     # 初始化
     init_draw(size)
 
@@ -181,7 +197,7 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 done = True
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and not pipe_mode:
                 if event.key == pygame.K_LEFT:
                     frame -= frame_per_second * 2
                     if frame < 0:
@@ -208,10 +224,17 @@ if __name__ == "__main__":
                 draw(0, frame, data)
             frame += 1
         else:
+            # 检测鼠标点击
+            if pygame.mouse.get_pressed()[0]:
+                pos = pygame.mouse.get_pos()
+                if pos[1] < margin / 2:
+                    frame = int((pos[0] - margin / 2) / width * len(whole_data))
+                    if frame >= len(whole_data):
+                        frame = len(whole_data) - 1
             if frame < len(whole_data):
                 data = whole_data[frame].strip().split()
                 if len(data) == 12:
-                    draw(frame_per_second, frame, data)
+                    draw(frame_per_second, frame, data, len(whole_data))
                 if playing:
                     frame += 1
                     time.sleep(1 / frame_per_second)
