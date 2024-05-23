@@ -30,6 +30,19 @@ import sys
 import os
 import time
 
+map_ = """*****c****
+*...*....*
+*...*..***
+*........p
+A..*.....$
+B..*.....t
+C..**....*
+s.....*..s
+*.....*._*
+*kr*******""".split(
+    "\n"
+)
+
 
 def draw(speed, frame, data: list, maxframe=14400):
     [p1x, p1y, v1x, v1y, a1x, a1y, p2x, p2y, v2x, v2y, a2x, a2y] = [
@@ -73,6 +86,21 @@ def draw(speed, frame, data: list, maxframe=14400):
             (width + margin / 2, i * height / maxheight + margin / 2),
             1,
         )
+    # 绘制地图
+    for i in range(0, maxwidth):
+        for j in range(0, maxheight):
+            if map_[j][i] != ".":
+                pygame.draw.rect(
+                    screen,
+                    dark_gray,
+                    (
+                        i * width / maxwidth + margin / 2,
+                        j * height / maxheight + margin / 2,
+                        width / maxwidth,
+                        height / maxheight,
+                    ),
+                    0,
+                )
     # 绘制角色位置
     pygame.draw.circle(screen, light_red, position1, 0.35 * block_size)
     pygame.draw.circle(screen, light_green, position2, 0.35 * block_size)
@@ -219,8 +247,8 @@ if __name__ == "__main__":
         if pipe_mode:
             # 读取管道
             pipe = open(pipe_path, "r")
-            data = pipe.readline()
             pipe.close()
+            print(data)
             data = data.strip().split()
             if len(data) == 12:
                 draw(0, frame, data)
