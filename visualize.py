@@ -51,7 +51,9 @@ def draw(speed, frame, data: list):
     screen.fill((255, 255, 255))
     dark_blue = (0, 0, 128)
     dark_green = (0, 128, 0)
-    shadow = (200, 200, 200)
+    dark_red = (128, 0, 0)
+    shadow1 = (255, 200, 200)  # light red
+    shadow2 = (200, 255, 200)  # light green
     # 绘制格子
     for i in range(1, maxwidth):
         pygame.draw.line(
@@ -70,12 +72,12 @@ def draw(speed, frame, data: list):
             1,
         )
     # 绘制角色位置
-    pygame.draw.circle(screen, shadow, position1, 35)
-    pygame.draw.circle(screen, shadow, position2, 35)
+    pygame.draw.circle(screen, shadow1, position1, 35)
+    pygame.draw.circle(screen, shadow2, position2, 35)
     # 在角色周围绘制移动
     pygame.draw.circle(
         screen,
-        dark_green,
+        dark_red,
         (move1[0] + position1[0], move1[1] + position1[1]),
         15,
     )
@@ -105,7 +107,21 @@ def draw(speed, frame, data: list):
     text = font.render(
         "Frame: " + str(frame) + ", Speed: " + str(speed), 1, (10, 10, 10)
     )
-    screen.blit(text, (10, 10))
+    screen.blit(text, (10, height + margindown - 30))
+    # 显示数据
+    font = pygame.font.Font(None, 36)
+    text = font.render(
+        f"({str(p1x)[:4]},{str(p1y)[:4]}) ({str(v1x)[:4]},{str(v1y)[:4]}) ({str(a1x)[:4]},{str(a1y)[:4]}) red",
+        1,
+        (10, 10, 10),
+    )
+    screen.blit(text, (10, height + margindown + 10))
+    text = font.render(
+        f"({str(p2x)[:4]},{str(p2y)[:4]}) ({str(v2x)[:4]},{str(v2y)[:4]}) ({str(a2x)[:4]},{str(a2y)[:4]}) green",
+        1,
+        (10, 10, 10),
+    )
+    screen.blit(text, (10, height + margindown + 50))
     pygame.display.update()
 
 
@@ -144,13 +160,14 @@ if __name__ == "__main__":
     # 设置窗口大小
     width, height = 800, 800
     margin = 100
+    margindown = 100
     center = width // 2, height // 2
     maxlength = 50
     maxheight = 10
     maxwidth = 10
     maxspeed = 5
     maxmove = 1
-    size = width + margin, height + margin
+    size = width + margin, height + margin + margindown
     # 初始化
     init_draw(size)
 
