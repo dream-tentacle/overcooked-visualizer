@@ -204,6 +204,8 @@ if __name__ == "__main__":
                         frame = 0
                 if event.key == pygame.K_RIGHT:
                     frame += frame_per_second * 2
+                    if frame >= len(whole_data):
+                        frame = len(whole_data) - 1
                 if event.key == pygame.K_UP:
                     frame_per_second += 5
                     if frame_per_second == 6:
@@ -231,10 +233,10 @@ if __name__ == "__main__":
                     frame = int((pos[0] - margin / 2) / width * len(whole_data))
                     if frame >= len(whole_data):
                         frame = len(whole_data) - 1
-            if frame < len(whole_data):
-                data = whole_data[frame].strip().split()
-                if len(data) == 12:
-                    draw(frame_per_second, frame, data, len(whole_data))
-                if playing:
+            data = whole_data[frame].strip().split()
+            if len(data) == 12:
+                draw(frame_per_second, frame, data, len(whole_data))
+            if playing:
+                if frame < len(whole_data) - 1:
                     frame += 1
-                    time.sleep(1 / frame_per_second)
+                time.sleep(1 / frame_per_second)
